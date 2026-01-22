@@ -1,0 +1,3 @@
+{
+  "ignore": ["telegram_session/*", "telegram_session"]
+}
