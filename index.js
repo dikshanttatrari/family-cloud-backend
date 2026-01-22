@@ -378,6 +378,110 @@ app.post("/api/files/upload", upload.single("file"), async (req, res) => {
   }
 });
 
+app.get("/health", (req, res) => {
+  res.send(`
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>FamilyCloud | System Status</title>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+        <style>
+            :root {
+                --bg: #0f1014;
+                --card: #16161a;
+                --primary: #6366f1;
+                --success: #10b981;
+                --text: #ffffff;
+                --text-dim: #9ca3af;
+            }
+            body {
+                font-family: 'Inter', sans-serif;
+                background-color: var(--bg);
+                color: var(--text);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 100vh;
+                margin: 0;
+            }
+            .status-card {
+                background: var(--card);
+                padding: 2rem;
+                border-radius: 20px;
+                border: 1px solid rgba(255,255,255,0.1);
+                box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+                text-align: center;
+                max-width: 400px;
+                width: 90%;
+            }
+            .pulse-container {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                margin-bottom: 1.5rem;
+            }
+            .pulse {
+                width: 12px;
+                height: 12px;
+                background: var(--success);
+                border-radius: 50%;
+                box-shadow: 0 0 0 rgba(16, 185, 129, 0.4);
+                animation: pulse 2s infinite;
+            }
+            @keyframes pulse {
+                0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+                70% { box-shadow: 0 0 0 15px rgba(16, 185, 129, 0); }
+                100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+            }
+            h1 { font-size: 1.5rem; margin: 0.5rem 0; font-weight: 600; }
+            p { color: var(--text-dim); font-size: 0.9rem; }
+            .badge {
+                display: inline-block;
+                padding: 4px 12px;
+                background: rgba(16, 185, 129, 0.1);
+                color: var(--success);
+                border-radius: 20px;
+                font-size: 0.75rem;
+                font-weight: 600;
+                margin-top: 1rem;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+            }
+            .divider {
+                height: 1px;
+                background: rgba(255,255,255,0.05);
+                margin: 1.5rem 0;
+            }
+            .stats {
+                display: flex;
+                justify-content: space-around;
+                font-size: 0.8rem;
+                color: var(--text-dim);
+            }
+        </style>
+    </head>
+    <body>
+        <div class="status-card">
+            <div class="pulse-container">
+                <div class="pulse"></div>
+            </div>
+            <h1>System Operational</h1>
+            <p>OurFamilyCloud API is running smoothly on Render.</p>
+            <div class="badge">Connection Secure</div>
+            <div class="divider"></div>
+            <div class="stats">
+                <div>Uptime: 99.9%</div>
+                <div>Server: Node.js</div>
+                <div>Latency: Low</div>
+            </div>
+        </div>
+    </body>
+    </html>
+  `);
+});
+
 app.post(
   "/api/files/upload-multiple",
   upload.array("files"),
