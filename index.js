@@ -21,6 +21,8 @@ const { Server } = require("socket.io");
 const http = require("http");
 const axios = require("axios");
 
+sharp.cache(false)
+
 
 ffmpeg.setFfmpegPath(ffmpegPath);
 const app = express();
@@ -73,26 +75,21 @@ const upload = multer({
 
 const compressVideo = (inputPath, outputPath, socketId) => {
   return new Promise((resolve, reject) => {
-    console.log("🎬 Starting HQ Mobile Compression...");
+    console.log("🎬 Starting Lite Mobile Compression (720p)...");
 
     ffmpeg(inputPath)
       .output(outputPath)
       .videoCodec("libx264")
-      // 🟢 RESIZE: Keep 1080p limit (Vital for old phones), but don't upscale small videos
       .outputOptions([
-        "-vf scale='min(1920,iw)':-2",
-
-        "-crf 23", // 🟢 23 = The perfect balance (Visually clear, reasonable size)
-        "-preset fast", // Encode speed
-
-        "-c:a aac", // Audio Codec
-        "-b:a 192k", // 🟢 192kbps Audio (Crystal clear, near-transparency)
-        "-ac 2", // Force Stereo (Fixes issues with 5.1/7.1 audio on phones)
-
-        "-movflags +faststart", // Instant play
-        "-pix_fmt yuv420p", // Android Compatibility
-        "-profile:v main", // Compatibility Profile
-        "-level 4.0",
+        "-vf scale='min(1280,iw)':-2",
+        "-preset ultrafast",        
+        "-crf 28", 
+        "-c:a aac", 
+        "-b:a 128k", 
+        "-ac 2",
+        "-pix_fmt yuv420p", 
+        "-profile:v baseline",
+        "-level 3.0"
       ])
       .on("progress", (progress) => {
         if (socketId && progress.percent) {
@@ -104,11 +101,12 @@ const compressVideo = (inputPath, outputPath, socketId) => {
         }
       })
       .on("end", () => {
-        console.log("✅ HQ Compression Complete");
+        console.log("✅ Lite Compression Complete");
         resolve(outputPath);
       })
       .on("error", (err) => {
         console.error("Compression Error:", err.message);
+        // If compression fails (e.g. OOM), we reject so we can fallback to original
         reject(err);
       })
       .run();
@@ -610,13 +608,18 @@ app.post(
             `hq_${Date.now()}_${Math.random()}.mp4`,
           );
 
-          await compressVideo(localPath, compressedPath, socketId);
+     try {
+    await compressVideo(localPath, compressedPath, socketId);
+    finalUploadPath = compressedPath;
+    finalFileName = finalFileName.replace(/\.[^/.]+$/, "") + ".mp4";
+  } catch (err) {
+    console.warn("⚠️ Compression failed (RAM limit?), uploading original file instead.");
+    finalUploadPath = localPath;
+    compressedPath = null; 
+  }
 
-          finalUploadPath = compressedPath;
-          finalFileName = finalFileName.replace(/\.[^/.]+$/, "") + ".mp4";
-
-          const stats = await fs.stat(compressedPath);
-          size = stats.size;
+  const stats = await fs.stat(finalUploadPath);
+  size = stats.size;
         }
 
         // 🟢 4. PREVIEW ARTIFACT LOGIC
