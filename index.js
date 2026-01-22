@@ -6,7 +6,7 @@ const path = require("path");
 const os = require("os");
 const multer = require("multer");
 const { TelegramClient } = require("telegram");
-const { StoreSession } = require("telegram/sessions");
+const { StringSession } = require("telegram/sessions");
 const { CustomFile } = require("telegram/client/uploads");
 const { Telegraf } = require("telegraf");
 const fs = require("fs-extra");
@@ -20,6 +20,8 @@ const cron = require("node-cron");
 const { Server } = require("socket.io");
 const http = require("http");
 const axios = require("axios");
+
+sharp.cache(false)
 
 ffmpeg.setFfmpegPath(ffmpegPath);
 const app = express();
@@ -44,10 +46,10 @@ const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const GROUP_ID = process.env.TELEGRAM_CHAT_ID;
 const apiId = 34981332;
 const apiHash = process.env.TELEGRAM_API_HASH;
-const storeSession = new StoreSession("telegram_session");
+const stringSession = new StringSession(process.env.TELEGRAM_SESSION_STRING || "");
 
 // --- INITIALIZE GRAMJS ---
-const client = new TelegramClient(storeSession, apiId, apiHash, {
+const client = new TelegramClient(stringSession, apiId, apiHash, {
   connectionRetries: 5,
 });
 
