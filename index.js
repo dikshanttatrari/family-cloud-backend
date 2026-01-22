@@ -21,7 +21,6 @@ const { Server } = require("socket.io");
 const http = require("http");
 const axios = require("axios");
 
-sharp.cache(false)
 
 ffmpeg.setFfmpegPath(ffmpegPath);
 const app = express();
